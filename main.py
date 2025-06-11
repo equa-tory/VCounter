@@ -3,7 +3,7 @@ import sqlite3
 import config
 from discord.ext import commands
 from discord import app_commands
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 
 # -------- НАСТРОЙКИ --------
 intents = discord.Intents.default()
@@ -47,13 +47,13 @@ async def on_voice_state_update(member, before, after):
 
     if after.channel and not before.channel:
         # Вошёл в войс
-        voice_sessions[user_id] = datetime.now(UTC)
+        voice_sessions[user_id] = datetime.now(timezone.utc)
 
     elif before.channel and not after.channel:
         # Вышел из войса
         join_time = voice_sessions.pop(user_id, None)
         if join_time:
-            duration = int((datetime.now(UTC) - join_time).total_seconds())
+            duration = int((datetime.now(timezone.utc) - join_time).total_seconds())
             cursor.execute("""
             INSERT INTO voice_times (user_id, total_seconds)
             VALUES (?, ?)
@@ -75,7 +75,7 @@ async def time_command(interaction: discord.Interaction, member: discord.Member 
 
     # Добавляем сессию, если пользователь в войсе сейчас
     if user_id in voice_sessions:
-        total_seconds += int((datetime.now(UTC) - voice_sessions[user_id]).total_seconds())
+        total_seconds += int((datetime.now(timezone.utc) - voice_sessions[user_id]).total_seconds())
 
     hours, rem = divmod(total_seconds, 3600)
     minutes, _ = divmod(rem, 60)
